@@ -8,3 +8,9 @@ long long fatorial(int n) {
     }
     return resultado;
 }
+
+int main() {
+    int n = 100000;
+    printf("%lld\n", fatorial(n));
+    return 0;
+}
