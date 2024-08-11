@@ -1,7 +1,10 @@
 // Função de fatorial em JavaScript
 function fatorialJS(n) {
-    if (n === 0 || n === 1) {
-        return 1;
+    if (n < 0) return BigInt(0); // Fatorial não definido para negativos
+    let resultado = BigInt(1);
+    for (let i = BigInt(2); i <= BigInt(n); i++) {
+        resultado *= i;
     }
-    return n * fatorialJS(n - 1);
+    return resultado;
 }
+export { fatorialJS };
