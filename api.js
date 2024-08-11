@@ -1,7 +1,20 @@
 // main.js
 import { fatorialJS } from "./fatorial.js";
+import { readFileSync } from 'fs'
+import { readFile } from 'fs/promises'
+import { outputFile, outputFileSync } from 'fs-extra/esm'
+import express from "express";
+import numeroval from './index.js'
 
-let numero = document.getElementById("calcular");
+const app = express();
+const porta = 3000;
+
+app.listen(porta, () => {
+    console.log(`Servidor rodando na porta ${porta}`);
+    console.log("Calculando..." + numeroval);
+  });
+
+
 
 // Função para carregar o módulo WASM
 async function loadWasm() {
@@ -26,9 +39,6 @@ function calcularTempoExecucao(funcao, ...args) {
 
 // Carregar o WASM e configurar o evento de clique
 loadWasm().then((wasmExports) => {
-    numero.addEventListener("click", () => {
-        let numeroval = BigInt(document.getElementById("calcularval").value);
-        console.log("Calculando..." + numeroval);
 
         // Calcular usando WASM
         const fatorialWASM = wasmExports.fatorial;
@@ -42,5 +52,4 @@ loadWasm().then((wasmExports) => {
             calcularTempoExecucao(fatorialJS, numeroval);
         console.log(`Resultado do fatorial.js: ${resultadoJS}`);
         console.log(`Tempo de execução do fatorial.js: ${tempoExecucaoJS} ms`);
-    });
 });
