@@ -8,8 +8,9 @@ function fatorialJS(n) {
     return resultado;
 }
 
-for (let index = 0; index <= 100000; index++) {
+for (let index = 0; index <= 1000; index++) {
     
-    console.log(fatorialJS(index));
+    fatorialJS(index);
+    console.log(index)
 }
-export { fatorialJS };
+//export { fatorialJS };
