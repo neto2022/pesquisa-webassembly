@@ -1,20 +1,26 @@
 // main.js
-//import { fatorialJS } from "./fatorial.js";
-//import { Module } from './a.out.js';
-// Função para calcular o tempo de execução
-function calcularTempoExecucao(funcao, ...args) {
-    const start = performance.now();
-    const resultado = funcao(...args);
-    const end = performance.now();
-    const tempoExecucao = end - start;
-    return { resultado, tempoExecucao };
+import { fatorialJS } from "./fat.js";
+
+async function main() {
+  const aOut = await import("./fatorial.out.js");
+  //const { resultado: resultadoAOut, tempoExecucao: tempoExecucaoAOut } = medirTempoDeExecucao(aOut.run);
+  console.time("tempoExecucao WASM");
+
+  // Código cuja execução você quer medir
+  for (let i = 0; i < 1000000; i++) {
+    aOut.run
+  }
+
+  console.timeEnd("tempoExecucao WASM");
+  console.time("tempoExecucao JS");
+
+  // Código cuja execução você quer medir
+  for (let i = 0; i < 10000n; i++) {
+    fatorialJS(100000)
+  }
+
+  console.timeEnd("tempoExecucao JS");
+  
 }
 
-function loadScript(src) {
-    let script = document.createElement('script');
-    script.src = src;
-    document.head.append(script);
-}
-
-loadScript('a.out.js');
-loadScript('fatorial.js')
+main();

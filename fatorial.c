@@ -1,24 +1,21 @@
 #include <stdio.h>
 #include <gmp.h>
 
-void fatorial(int n, mpz_t resultado) {
-    mpz_set_ui(resultado, 1); // Inicializa o resultado como 1
-    for (int i = 1; i <= n; ++i) {
-        mpz_mul_ui(resultado, resultado, i); // resultado *= i
-    }
+void fatorial(int n)
+{
+     for(long int fat = 1; n > 1; n = n - 1)
+  {      
+      fat = fat * n;
+  }
 }
 
-int main() {
-    int n = 100000;
-    mpz_t resultado;
-    mpz_init(resultado);
+int main()
+{
 
-    fatorial(n, resultado);
-
-    printf("Fatorial de %d é: ", n);
-    mpz_out_str(stdout, 10, resultado); // Imprime o resultado
-    printf("\n");
-
-    mpz_clear(resultado);
-    return 0;
+    for (int index = 0; index <= 100000; index++)
+    {
+        fatorial(index);
+        printf("fatorial C %d", index);
+        printf("\n");
+    }
 }
