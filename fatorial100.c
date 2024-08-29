@@ -12,10 +12,8 @@ void fatorial(int n)
 int main()
 {
 
-    for (int index = 0; index <= 100000; index++)
+    for (int index = 0; index <= 1000000; index++)
     {
         fatorial(index);
-        printf("fatorial C %d", index);
-        printf("\n");
     }
 }
