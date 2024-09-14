@@ -11,7 +11,6 @@ void fatorial(int n)
 
 int main()
 {
-
     for (int index = 0; index <= 100000; index++)
     {
         fatorial(index);
