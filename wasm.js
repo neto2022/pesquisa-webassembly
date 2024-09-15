@@ -1,10 +1,23 @@
-const WASM = await import("./fatorial.out.js");
-console.time("tempoExecucao WASM");
+let memoriaAntes, memoriaDepois;
+let inicio, fim;
+
+const WASM = await import("./fatorial.js");
+
+inicio = performance.now();
 
 WASM.run;
 
-console.timeEnd("tempoExecucao WASM");
+fim = performance.now();
+
+const tempoDeExecucaoWasm = fim - inicio;
 if (performance.memory) {
-  const memory = performance.memory;
-  console.log(`Uso de memória: ${memory.usedJSHeapSize / 1048576} MB`);
+  memoriaAntes = performance.memory.usedJSHeapSize;
+  WASM.run;
+  memoriaDepois = performance.memory.usedJSHeapSize;
 }
+let resultado = document.getElementById("wasm");
+resultado.innerHTML = `Tempo de execução: ${tempoDeExecucaoWasm} MS WASM <br>
+Uso de memória: ${((memoriaDepois - memoriaAntes) / 1048576).toFixed(
+  2
+)} MB WASM`;
+console.log(`Memória antes: ${memoriaAntes}, Memória depois: ${memoriaDepois}`);
