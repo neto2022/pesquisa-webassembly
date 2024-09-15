@@ -1,18 +1,28 @@
-let inicioWasm, fimWasm;
+let inicioWasm, fimWasm, tempoDeExecucaoWasm;
 let inicio, fim;
 let memoriaAntes, memoriaDepois;
 
-if (performance.memory) {
-  memoriaAntes = performance.memory;
-}
-
-const WASM = await import("./fatorial.js");
 inicioWasm = performance.now();
 
-WASM.run;
+WebAssembly.instantiateStreaming(fetch("fatorial.wasm"), {}).then((result) => {
+  const instance = result.instance;
 
-fimWasm = performance.now();
-const tempoDeExecucaoWasm = fimWasm - inicioWasm;
+  memoriaAntes = performance.memory.usedJSHeapSize;
+
+  instance.exports.main();
+
+  fimWasm = performance.now();
+
+  tempoDeExecucaoWasm = fimWasm - inicioWasm;
+
+  let resultado = document.getElementById("wasm");
+  resultado.innerHTML = `Tempo de execução: ${tempoDeExecucaoWasm.toFixed(
+    2
+  )} MS WASM <br>
+    Uso de memória: ${((memoriaDepois - memoriaAntes) / 1048576).toFixed(
+      2
+    )} MB WASM`;
+});
 
 function fatorialJS(n) {
   for (let fat = 1; n > 1; n = n - 1) {
@@ -30,11 +40,9 @@ fim = performance.now();
 
 const tempoDeExecucao = fim - inicio;
 
-if (performance.memory) {
-  memoriaDepois = performance.memory;
-}
+memoriaDepois = performance.memory;
 
 let resultado = document.getElementById("pwasm-js");
 resultado.innerHTML = `Tempo de execução: ${tempoDeExecucaoWasm} MS WASM <br>
 Tempo de execução: ${tempoDeExecucao} MS JS <br>
-Uso de memória: ${memoriaDepois.usedJSHeapSize - memoriaAntes.usedJSHeapSize / 1048576} MB JS+WASM`;
+Uso de memória: ${(memoriaDepois - memoriaAntes) / 1048576} MB JS+WASM`;
