@@ -1,25 +1,20 @@
 let memoriaAntes, memoriaDepois;
 let inicio, fim;
 
-inicio = performance.now();
+WebAssembly.instantiateStreaming(fetch("./fatorial.wasm"), {}).then(
+  (result) => {
+    inicio = performance.now();
+    memoriaAntes = performance.memory.usedJSHeapSize;
 
-WebAssembly.instantiateStreaming(fetch("fatorial.wasm"), {}).then((result) => {
-  const instance = result.instance;
+    result.instance.exports.main();
 
-  memoriaAntes = performance.memory.usedJSHeapSize;
+    fim = performance.now();
+    const tempoDeExecucaoWasm = fim - inicio;
 
-  instance.exports.main();
+    memoriaDepois = performance.memory.usedJSHeapSize;
 
-  fim = performance.now();
-  const tempoDeExecucaoWasm = fim - inicio;
-
-  memoriaDepois = performance.memory.usedJSHeapSize;
-
-  let resultado = document.getElementById("wasm");
-  resultado.innerHTML = `Tempo de execução: ${tempoDeExecucaoWasm.toFixed(
-    2
-  )} MS WASM <br>
-    Uso de memória: ${((memoriaDepois - memoriaAntes) / 1048576).toFixed(
-      2
-    )} MB WASM`;
-});
+    let resultado = document.getElementById("wasmjs");
+    resultado.innerHTML = `Tempo de execução: ${tempoDeExecucaoWasm} MS WASM <br>
+      Uso de memória: ${(memoriaDepois - memoriaAntes) / 1048576} MB WASM`;
+  }
+);
