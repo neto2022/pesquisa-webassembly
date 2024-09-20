@@ -3,6 +3,7 @@
         "gmp.h": "c",
         "em_asm.h": "c",
         "emscripten.h": "c",
-        "em_macros.h": "c"
+        "em_macros.h": "c",
+        "stdio.h": "c"
     }
 }

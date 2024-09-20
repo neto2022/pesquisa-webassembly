@@ -1,0 +1,12 @@
+compilar fatorial.c
+cd "/home/clear/faculdade/pesquisa-webassembly/" && gcc fatorial.c -o fatorial -lgmp && "/home/clear/faculdade/pesquisa-webassembly/"fatorial
+
+gmp.h para wasm
+wget https://gmplib.org/download/gmp/gmp-6.2.1.tar.xz
+tar -xf gmp-6.2.1.tar.xz
+cd gmp-6.2.1
+
+emconfigure ./configure --disable-assembly --host=none --build=none
+
+compilar c para wasm no wsl
+emcc -I./gmp-6.2.1 -L./gmp-6.2.1/.libs -lgmp fatorial.c -o fatorial.js -s NO_EXIT_RUNTIME=1 -s EXPORTED_FUNCTIONS='["_fatorial"]'

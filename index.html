@@ -3,12 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preload" as="fetch" href="fatorial.wasm" crossorigin />
     <title>Cálculo de Fatorial</title>
   </head>
   <body>
     <h1>Cálculo de Fatorial</h1>
     <div id="wasm">
-      <p id="pwasm+js"></p>
+      <p id="pwasm"></p>
     </div>
     <div id="js">
       <p id="pjs"></p>
@@ -16,8 +17,59 @@
     <div id="wasm-js">
       <p id="pwasm-js"></p>
     </div>
-    <script type="module" src="wasm.js"></script>
-    <script type="module" src="fat.js"></script>
-    <script type="module" src="fatwasm.js"></script>
+
+    <script>
+      const memory = new WebAssembly.Memory({ initial: 256 });
+
+const importObject = {
+  wasi_snapshot_preview1: {
+    fd_write: (fd, iov, iovcnt, pnum) => {
+      const text = new TextDecoder().decode(new Uint8Array(memory.buffer, iov, iovcnt));
+      console.log(text);
+      return 0; // Return 0 for success
+    },
+    proc_exit: (code) => {
+      console.log(`Process exited with code: ${code}`);
+    },
+    fd_close: (fd) => {
+      console.log(`File descriptor ${fd} closed.`);
+      return 0; // Return 0 for success
+    },
+    fd_seek: (fd, offset, whence) => {
+      console.log(`Seeking in file descriptor ${fd} with offset ${offset} and whence ${whence}`);
+      return 0; // Return 0 for success
+    },
+  },
+  env: {
+    memory: memory,
+    table: new WebAssembly.Table({ initial: 0, element: 'anyfunc' }),
+    _abort_js: () => {
+      console.error('Abort called from WebAssembly');
+    },
+    _emscripten_memcpy_js: (dest, src, num) => {
+      const mem = new Uint8Array(memory.buffer);
+      mem.set(mem.subarray(src, src + num), dest);
+      return dest;
+    },
+    _emscripten_runtime_keepalive_clear: () => {
+      console.log('Keepalive clear called');
+    },
+    __call_sighandler: (signum) => {
+      console.log(`Signal handler called with signal number: ${signum}`);
+    },
+    emscripten_resize_heap: (size) => {
+      console.log(`Resizing heap to size: ${size}`);
+      return 1; // Return 1 for success
+    },
+  },
+};
+
+      WebAssembly.instantiateStreaming(fetch("fatorial.wasm"), importObject)
+        .then((result) => {
+          const fatorial = result.instance.exports.fatorial(4);
+          console.log(fatorial);
+        })
+        .catch(console.error);
+    </script>
   </body>
 </html>
