@@ -1,5 +1,6 @@
+import { input } from "./global.js";
 let inicio, fim;
-let memoriaAntes,memoriaDepois;
+let memoriaAntes, memoriaDepois;
 
 if (performance.memory) {
   memoriaAntes = performance.memory;
@@ -13,16 +14,17 @@ function fatorialJS(n) {
 
 inicio = performance.now();
 
-for (let index = 0; index < 100000; index++) {
-  fatorialJS(index);
-}
+fatorialJS(input);
+
 fim = performance.now();
 
 const tempoDeExecucao = fim - inicio;
 
- if (performance.memory) {
-   memoriaDepois = performance.memory;
- }
+memoriaDepois = performance.memory;
+
 let resultado = document.getElementById("pjs");
+
 resultado.innerHTML = `Tempo de execução: ${tempoDeExecucao} MS JS <br>
-Uso de memória: ${(memoriaDepois.usedJSHeapSize - memoriaAntes.usedJSHeapSize) / 1048576} MB JS`;
+Uso de memória: ${
+  (memoriaDepois.usedJSHeapSize - memoriaAntes.usedJSHeapSize) / 1048576
+} MB JS`;

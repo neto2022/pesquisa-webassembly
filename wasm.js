@@ -16,10 +16,6 @@ WebAssembly.instantiateStreaming(fetch("fatorial.wasm"), {}).then((result) => {
   memoriaDepois = performance.memory.usedJSHeapSize;
 
   let resultado = document.getElementById("wasm");
-  resultado.innerHTML = `Tempo de execução: ${tempoDeExecucaoWasm.toFixed(
-    2
-  )} MS WASM <br>
-    Uso de memória: ${((memoriaDepois - memoriaAntes) / 1048576).toFixed(
-      2
-    )} MB WASM`;
+  resultado.innerHTML = `Tempo de execução: ${tempoDeExecucaoWasm} MS WASM <br>
+    Uso de memória: ${((memoriaDepois - memoriaAntes) / 1048576)} MB WASM`;
 });

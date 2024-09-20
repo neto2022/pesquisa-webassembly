@@ -1,21 +1,23 @@
 #include <stdio.h>
 #include <gmp.h>
-#include <emscripten.h>
 
-EMSCRIPTEN_KEEPALIVE
-void fatorial(int n)
-{
-     for(long int fat = 1; n > 1; n = n - 1)
-  {      
-      fat = fat * n;
-  }
+void fatorial(int n, mpz_t result) {
+    mpz_init_set_ui(result, 1); // Initialize result to 1
+    for (int i = 2; i <= n; ++i) {
+        mpz_mul_ui(result, result, i); // result *= i
+    }
 }
 
-EMSCRIPTEN_KEEPALIVE
-int main()
-{
-    for (int index = 0; index <= 100000; index++)
-    {
-        fatorial(index);
-    }
+int main() {
+    int n = 1000000;
+    mpz_t result;
+    fatorial(n, result);
+    
+    // Print the result
+    gmp_printf("Factorial of %d is: %Zd\n", n, result);
+    
+    // Clear memory
+    mpz_clear(result);
+    
+    return 0;
 }
