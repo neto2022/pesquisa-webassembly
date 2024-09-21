@@ -1,6 +1,3 @@
-[dependencies]
-num-bigint = "0.4"
-num-traits = "0.2"
 use num_bigint::BigUint;
 use num_traits::{One, Zero};
 

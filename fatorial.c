@@ -1,14 +1,16 @@
-#include <gmp.h>
+//#include <gmp.h>
 #include <stdio.h>
 #include <emscripten.h>
 
-EMSCRIPTEN_KEEPALIVE
-void fatorial(int n)
-{
-    mpz_t resultado;
-    mpz_init(resultado);
-
-    mpz_fac_ui(resultado, n); // Calcula o fatorial de n
-
-    mpz_clear(resultado); // Libera a memória alocada
+emmscripten_KEEPALIVE
+unsigned long long int fatorial(int n) {
+    if (n == 0 || n == 1) {
+        return 1;
+    }
+    unsigned long long int resultado = 1;
+    for (int i = 2; i <= n; i++) {
+        resultado *= i;
+    }
+    return resultado;
 }
+
