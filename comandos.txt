@@ -13,3 +13,8 @@ emcc
 
 compilar c para wasm no wsl
 emcc -I./gmp-6.2.1 -L./gmp-6.2.1/.libs -lgmp fatorial.c -o fatorial.js -s NO_EXIT_RUNTIME=1 -s EXPORTED_FUNCTIONS='["_fatorial"]' -s MODULARIZE=1 -s 'EXPORT_NAME="MyModule"' -s WASM=1
+
+emcc -lgmp -I./gmp-6.3.0 -L./gmp-6.3.0/.libs ./gmp-6.3.0/.libs/libgmp.a ./libmpz.a fatorial.c ./init.o ./get_str.o ./clear.o -o fatorial.js -s NO_EXIT_RUNTIME=1 -s EXPORTED_FUNCTIONS='["_fatorial", "_mpz_init", "_mpz_get_str", "_mpz_clear", "_malloc", "_free"]' -s MODULARIZE=1 -s 'EXPORT_NAME="Module"' -s WASM=1
+
+emcc -lgmp -I./gmp-6.3.0 -L./gmp-6.3.0/.libs ./gmp-6.3.0/.libs/libgmp.a ./libmpz.a fatorial.c ./init.o ./get_str.o ./clear.o -o fatorial.js -s NO_EXIT_RUNTIME=1 -s EXPORTED_FUNCTIONS='["_fatorial", "_mpz_init", "_mpz_get_str", "_mpz_clear", "_malloc", "_free"]' -s MODULARIZE=1 -s 'EXPORT_NAME="Module"' -s WASM=1 -s ERROR_ON_UNDEFINED_SYMBOLS=0
+
