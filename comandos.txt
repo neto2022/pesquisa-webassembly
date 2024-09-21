@@ -8,5 +8,8 @@ cd gmp-6.2.1
 
 emconfigure ./configure --disable-assembly --host=none --build=none
 
+emcc
+./emsdk activate latest
+
 compilar c para wasm no wsl
-emcc -I./gmp-6.2.1 -L./gmp-6.2.1/.libs -lgmp fatorial.c -o fatorial.js -s NO_EXIT_RUNTIME=1 -s EXPORTED_FUNCTIONS='["_fatorial"]'
+emcc -I./gmp-6.2.1 -L./gmp-6.2.1/.libs -lgmp fatorial.c -o fatorial.js -s NO_EXIT_RUNTIME=1 -s EXPORTED_FUNCTIONS='["_fatorial"]' -s MODULARIZE=1 -s 'EXPORT_NAME="MyModule"' -s WASM=1

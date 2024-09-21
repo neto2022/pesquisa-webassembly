@@ -1,16 +1,12 @@
-//#include <gmp.h>
+#include <gmp.h>
 #include <stdio.h>
 #include <emscripten.h>
 
-emmscripten_KEEPALIVE
-unsigned long long int fatorial(int n) {
-    if (n == 0 || n == 1) {
-        return 1;
+EMSCRIPTEN_KEEPALIVE
+void fatorial(mpz_t result, unsigned int n) {
+    mpz_set_ui(result, 1); // Inicializa o resultado como 1
+    for (unsigned int i = 1; i <= n; i++) {
+        mpz_mul_ui(result, result, i); // result *= i
     }
-    unsigned long long int resultado = 1;
-    for (int i = 2; i <= n; i++) {
-        resultado *= i;
-    }
-    return resultado;
 }
 

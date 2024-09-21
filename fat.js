@@ -15,7 +15,7 @@ function fatorialJS(numero) {
 
 const inicio = performance.now();
 
-console.log(fatorialJS(10));
+fatorialJS(100000);
 const fim = performance.now();
 
 const tempoDeExecucao = fim - inicio;

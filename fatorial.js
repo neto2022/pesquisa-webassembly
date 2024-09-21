@@ -1,5 +1,5 @@
 
-var createFatorialModule = (() => {
+var MyModule = (() => {
   var _scriptName = typeof document != 'undefined' ? document.currentScript?.src : undefined;
   if (typeof __filename != 'undefined') _scriptName = _scriptName || __filename;
   return (
@@ -751,10 +751,6 @@ function createWasm() {
     assert(wasmMemory, 'memory not found in wasm exports');
     updateMemoryViews();
 
-    wasmTable = wasmExports['__indirect_function_table'];
-    
-    assert(wasmTable, 'table not found in wasm exports');
-
     addOnInit(wasmExports['__wasm_call_ctors']);
 
     removeRunDependency('wasm-instantiate');
@@ -993,31 +989,11 @@ function dbg(...args) {
       }
     };
 
-  var wasmTableMirror = [];
-  
-  /** @type {WebAssembly.Table} */
-  var wasmTable;
-  var getWasmTableEntry = (funcPtr) => {
-      var func = wasmTableMirror[funcPtr];
-      if (!func) {
-        if (funcPtr >= wasmTableMirror.length) wasmTableMirror.length = funcPtr + 1;
-        wasmTableMirror[funcPtr] = func = wasmTable.get(funcPtr);
-      }
-      assert(wasmTable.get(funcPtr) == func, 'JavaScript-side Wasm function table mirror is out of date!');
-      return func;
-    };
-  var ___call_sighandler = (fp, sig) => getWasmTableEntry(fp)(sig);
-
   var __abort_js = () => {
       abort('native code called abort()');
     };
 
   var __emscripten_memcpy_js = (dest, src, num) => HEAPU8.copyWithin(dest, src, src + num);
-
-  var __emscripten_runtime_keepalive_clear = () => {
-      noExitRuntime = false;
-      runtimeKeepaliveCounter = 0;
-    };
 
   var getHeapMax = () =>
       HEAPU8.length;
@@ -1170,30 +1146,14 @@ function dbg(...args) {
       HEAPU32[((pnum)>>2)] = num;
       return 0;
     };
-
-  
-  var runtimeKeepaliveCounter = 0;
-  var keepRuntimeAlive = () => noExitRuntime || runtimeKeepaliveCounter > 0;
-  var _proc_exit = (code) => {
-      EXITSTATUS = code;
-      if (!keepRuntimeAlive()) {
-        Module['onExit']?.(code);
-        ABORT = true;
-      }
-      quit_(code, new ExitStatus(code));
-    };
 function checkIncomingModuleAPI() {
   ignoredModuleProp('fetchSettings');
 }
 var wasmImports = {
   /** @export */
-  __call_sighandler: ___call_sighandler,
-  /** @export */
   _abort_js: __abort_js,
   /** @export */
   _emscripten_memcpy_js: __emscripten_memcpy_js,
-  /** @export */
-  _emscripten_runtime_keepalive_clear: __emscripten_runtime_keepalive_clear,
   /** @export */
   emscripten_resize_heap: _emscripten_resize_heap,
   /** @export */
@@ -1201,14 +1161,11 @@ var wasmImports = {
   /** @export */
   fd_seek: _fd_seek,
   /** @export */
-  fd_write: _fd_write,
-  /** @export */
-  proc_exit: _proc_exit
+  fd_write: _fd_write
 };
 var wasmExports = createWasm();
 var ___wasm_call_ctors = createExportWrapper('__wasm_call_ctors', 0);
 var _fatorial = Module['_fatorial'] = createExportWrapper('fatorial', 2);
-var _main = createExportWrapper('main', 2);
 var _fflush = createExportWrapper('fflush', 1);
 var _strerror = createExportWrapper('strerror', 1);
 var _emscripten_stack_init = () => (_emscripten_stack_init = wasmExports['emscripten_stack_init'])();
@@ -1259,6 +1216,7 @@ var missingLibrarySymbols = [
   'getDynCaller',
   'dynCall',
   'handleException',
+  'keepRuntimeAlive',
   'runtimeKeepalivePush',
   'runtimeKeepalivePop',
   'callUserCallback',
@@ -1445,7 +1403,6 @@ var unexportedSymbols = [
   'warnOnce',
   'readEmAsmArgsArray',
   'jstoi_s',
-  'keepRuntimeAlive',
   'alignMemory',
   'wasmTable',
   'noExitRuntime',
@@ -1647,6 +1604,6 @@ for (const prop of Object.keys(Module)) {
 );
 })();
 if (typeof exports === 'object' && typeof module === 'object')
-  module.exports = createFatorialModule;
+  module.exports = MyModule;
 else if (typeof define === 'function' && define['amd'])
-  define([], () => createFatorialModule);
+  define([], () => MyModule);
