@@ -1,11 +1,3 @@
-
-var Module = (() => {
-  var _scriptName = typeof document != 'undefined' ? document.currentScript?.src : undefined;
-  if (typeof __filename != 'undefined') _scriptName = _scriptName || __filename;
-  return (
-function(moduleArg = {}) {
-  var moduleRtn;
-
 // include: shell.js
 // The Module object: Our interface to the outside world. We import
 // and export values on it. There are various ways Module can be used:
@@ -20,22 +12,7 @@ function(moduleArg = {}) {
 // after the generated code, you will need to define   var Module = {};
 // before the code. Then that object will be used in the code, and you
 // can continue to use Module afterwards as well.
-var Module = moduleArg;
-
-// Set up the promise that indicates the Module is initialized
-var readyPromiseResolve, readyPromiseReject;
-var readyPromise = new Promise((resolve, reject) => {
-  readyPromiseResolve = resolve;
-  readyPromiseReject = reject;
-});
-["_fatorial","_my_mpz_init","_my_mpz_get_str","_my_mpz_clear","_my_malloc","_my_free","_memory","___indirect_function_table","onRuntimeInitialized"].forEach((prop) => {
-  if (!Object.getOwnPropertyDescriptor(readyPromise, prop)) {
-    Object.defineProperty(readyPromise, prop, {
-      get: () => abort('You are getting ' + prop + ' on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js'),
-      set: () => abort('You are setting ' + prop + ' on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js'),
-    });
-  }
-});
+var Module = typeof Module != 'undefined' ? Module : {};
 
 // Determine the runtime environment we are in. You can customize this by
 // setting the ENVIRONMENT setting at compile time (see settings.js).
@@ -134,7 +111,16 @@ readAsync = (filename, binary = true) => {
 
   arguments_ = process.argv.slice(2);
 
-  // MODULARIZE will export the module in the proper place outside, we don't need to export here
+  if (typeof module != 'undefined') {
+    module['exports'] = Module;
+  }
+
+  process.on('uncaughtException', (ex) => {
+    // suppress ExitStatus exceptions from showing an error
+    if (ex !== 'unwind' && !(ex instanceof ExitStatus) && !(ex.context instanceof ExitStatus)) {
+      throw ex;
+    }
+  });
 
   quit_ = (status, toThrow) => {
     process.exitCode = status;
@@ -156,11 +142,6 @@ if (ENVIRONMENT_IS_WEB || ENVIRONMENT_IS_WORKER) {
     scriptDirectory = self.location.href;
   } else if (typeof document != 'undefined' && document.currentScript) { // web
     scriptDirectory = document.currentScript.src;
-  }
-  // When MODULARIZE, this JS may be executed later, after document.currentScript
-  // is gone, so we saved it, and we use it here instead of any other info.
-  if (_scriptName) {
-    scriptDirectory = _scriptName;
   }
   // blob urls look like blob:http://site.com/etc/etc and we cannot infer anything from them.
   // otherwise, slice off the final part of the url to find the script directory.
@@ -194,14 +175,13 @@ if (ENVIRONMENT_IS_WORKER) {
     // Cordova or Electron apps are typically loaded from a file:// url.
     // So use XHR on webview if URL is a file URL.
     if (isFileURI(url)) {
-      return new Promise((resolve, reject) => {
+      return new Promise((reject, resolve) => {
         var xhr = new XMLHttpRequest();
         xhr.open('GET', url, true);
         xhr.responseType = 'arraybuffer';
         xhr.onload = () => {
           if (xhr.status == 200 || (xhr.status == 0 && xhr.response)) { // file URLs can return 0
             resolve(xhr.response);
-            return;
           }
           reject(xhr.status);
         };
@@ -243,6 +223,8 @@ if (Module['arguments']) arguments_ = Module['arguments'];legacyModuleProp('argu
 
 if (Module['thisProgram']) thisProgram = Module['thisProgram'];legacyModuleProp('thisProgram', 'thisProgram');
 
+if (Module['quit']) quit_ = Module['quit'];legacyModuleProp('quit', 'quit_');
+
 // perform assertions in shell.js after we set up out() and err(), as otherwise if an assertion fails it cannot print the message
 // Assertions on removed incoming Module JS APIs.
 assert(typeof Module['memoryInitializerPrefixURL'] == 'undefined', 'Module.memoryInitializerPrefixURL option was removed, use Module.locateFile instead');
@@ -283,7 +265,8 @@ assert(!ENVIRONMENT_IS_SHELL, 'shell environment detected but not enabled at bui
 // An online HTML version (which may be of a different version of Emscripten)
 //    is up at http://kripken.github.io/emscripten-site/docs/api_reference/preamble.js.html
 
-var wasmBinary = Module['wasmBinary'];legacyModuleProp('wasmBinary', 'wasmBinary');
+var wasmBinary; 
+if (Module['wasmBinary']) wasmBinary = Module['wasmBinary'];legacyModuleProp('wasmBinary', 'wasmBinary');
 
 if (typeof WebAssembly != 'object') {
   err('no native wasm support detected');
@@ -359,7 +342,6 @@ function updateMemoryViews() {
   Module['HEAPF32'] = HEAPF32 = new Float32Array(b);
   Module['HEAPF64'] = HEAPF64 = new Float64Array(b);
 }
-
 // end include: runtime_shared.js
 assert(!Module['STACK_SIZE'], 'STACK_SIZE can no longer be set at runtime.  Use -sSTACK_SIZE at link time')
 
@@ -408,6 +390,16 @@ function checkStackCookie() {
   }
 }
 // end include: runtime_stack_check.js
+// include: runtime_assertions.js
+// Endianness check
+(function() {
+  var h16 = new Int16Array(1);
+  var h8 = new Int8Array(h16.buffer);
+  h16[0] = 0x6373;
+  if (h8[0] !== 0x73 || h8[1] !== 0x63) throw 'Runtime error: expected the system to be little-endian! (Run with -sSUPPORT_BIG_ENDIAN to bypass)';
+})();
+
+// end include: runtime_assertions.js
 var __ATPRERUN__  = []; // functions called before the runtime is initialized
 var __ATINIT__    = []; // functions called during startup
 var __ATEXIT__    = []; // functions called during shutdown
@@ -565,6 +557,7 @@ function abort(what) {
   err(what);
 
   ABORT = true;
+  EXITSTATUS = 1;
 
   // Use a wasm runtime error, because a JS error might be seen as a foreign
   // exception, which means we'd run destructors on it. We need the error to
@@ -582,7 +575,6 @@ function abort(what) {
   /** @suppress {checkTypes} */
   var e = new WebAssembly.RuntimeError(what);
 
-  readyPromiseReject(e);
   // Throw the error whether or not MODULARIZE is set because abort is used
   // in code paths apart from instantiation where an exception is expected
   // to be thrown when abort is called.
@@ -751,10 +743,6 @@ function createWasm() {
     assert(wasmMemory, 'memory not found in wasm exports');
     updateMemoryViews();
 
-    wasmTable = wasmExports['__indirect_function_table'];
-    
-    assert(wasmTable, 'table not found in wasm exports');
-
     addOnInit(wasmExports['__wasm_call_ctors']);
 
     removeRunDependency('wasm-instantiate');
@@ -789,15 +777,13 @@ function createWasm() {
       return Module['instantiateWasm'](info, receiveInstance);
     } catch(e) {
       err(`Module.instantiateWasm callback failed with error: ${e}`);
-        // If instantiation fails, reject the module ready promise.
-        readyPromiseReject(e);
+        return false;
     }
   }
 
   if (!wasmBinaryFile) wasmBinaryFile = findWasmBinary();
 
-  // If instantiation fails, reject the module ready promise.
-  instantiateAsync(wasmBinary, wasmBinaryFile, info, receiveInstantiationResult).catch(readyPromiseReject);
+  instantiateAsync(wasmBinary, wasmBinaryFile, info, receiveInstantiationResult);
   return {}; // no exports yet; we'll fill them in later
 }
 
@@ -806,14 +792,6 @@ var tempDouble;
 var tempI64;
 
 // include: runtime_debug.js
-// Endianness check
-(() => {
-  var h16 = new Int16Array(1);
-  var h8 = new Int8Array(h16.buffer);
-  h16[0] = 0x6373;
-  if (h8[0] !== 0x73 || h8[1] !== 0x63) throw 'Runtime error: expected the system to be little-endian! (Run with -sSUPPORT_BIG_ENDIAN to bypass)';
-})();
-
 function legacyModuleProp(prop, newName, incoming=true) {
   if (!Object.getOwnPropertyDescriptor(Module, prop)) {
     Object.defineProperty(Module, prop, {
@@ -993,50 +971,45 @@ function dbg(...args) {
       }
     };
 
-  var wasmTableMirror = [];
-  
-  /** @type {WebAssembly.Table} */
-  var wasmTable;
-  var getWasmTableEntry = (funcPtr) => {
-      var func = wasmTableMirror[funcPtr];
-      if (!func) {
-        if (funcPtr >= wasmTableMirror.length) wasmTableMirror.length = funcPtr + 1;
-        wasmTableMirror[funcPtr] = func = wasmTable.get(funcPtr);
-      }
-      assert(wasmTable.get(funcPtr) == func, 'JavaScript-side Wasm function table mirror is out of date!');
-      return func;
-    };
-  var ___call_sighandler = (fp, sig) => getWasmTableEntry(fp)(sig);
+  /** @type {function(...*):?} */
+  function ___gmpz_clear(
+  ) {
+  abort('missing function: __gmpz_clear');
+  }
+  ___gmpz_clear.stub = true;
 
-  var __abort_js = () => {
-      abort('native code called abort()');
-    };
+  /** @type {function(...*):?} */
+  function ___gmpz_get_str(
+  ) {
+  abort('missing function: __gmpz_get_str');
+  }
+  ___gmpz_get_str.stub = true;
+
+  /** @type {function(...*):?} */
+  function ___gmpz_init(
+  ) {
+  abort('missing function: __gmpz_init');
+  }
+  ___gmpz_init.stub = true;
+
+  /** @type {function(...*):?} */
+  function ___gmpz_mul_ui(
+  ) {
+  abort('missing function: __gmpz_mul_ui');
+  }
+  ___gmpz_mul_ui.stub = true;
+
+  /** @type {function(...*):?} */
+  function ___gmpz_set_ui(
+  ) {
+  abort('missing function: __gmpz_set_ui');
+  }
+  ___gmpz_set_ui.stub = true;
 
   var __emscripten_memcpy_js = (dest, src, num) => HEAPU8.copyWithin(dest, src, src + num);
 
-  var __emscripten_runtime_keepalive_clear = () => {
-      noExitRuntime = false;
-      runtimeKeepaliveCounter = 0;
-    };
-
-  var getHeapMax = () =>
-      HEAPU8.length;
+  var printCharBuffers = [null,[],[]];
   
-  var alignMemory = (size, alignment) => {
-      assert(alignment, "alignment argument is required");
-      return Math.ceil(size / alignment) * alignment;
-    };
-  
-  var abortOnCannotGrowMemory = (requestedSize) => {
-      abort(`Cannot enlarge memory arrays to size ${requestedSize} bytes (OOM). Either (1) compile with -sINITIAL_MEMORY=X with X higher than the current value ${HEAP8.length}, (2) compile with -sALLOW_MEMORY_GROWTH which allows increasing the size at runtime, or (3) if you want malloc to return NULL (0) instead of this abort, compile with -sABORTING_MALLOC=0`);
-    };
-  var _emscripten_resize_heap = (requestedSize) => {
-      var oldSize = HEAPU8.length;
-      // With CAN_ADDRESS_2GB or MEMORY64, pointers are already unsigned.
-      requestedSize >>>= 0;
-      abortOnCannotGrowMemory(requestedSize);
-    };
-
   var UTF8Decoder = typeof TextDecoder != 'undefined' ? new TextDecoder() : undefined;
   
     /**
@@ -1090,6 +1063,25 @@ function dbg(...args) {
       }
       return str;
     };
+  var printChar = (stream, curr) => {
+      var buffer = printCharBuffers[stream];
+      assert(buffer);
+      if (curr === 0 || curr === 10) {
+        (stream === 1 ? out : err)(UTF8ArrayToString(buffer, 0));
+        buffer.length = 0;
+      } else {
+        buffer.push(curr);
+      }
+    };
+  
+  var flush_NO_FILESYSTEM = () => {
+      // flush anything remaining in the buffers during shutdown
+      _fflush(0);
+      if (printCharBuffers[1].length) printChar(1, 10);
+      if (printCharBuffers[2].length) printChar(2, 10);
+    };
+  
+  
   
     /**
      * Given a pointer 'ptr' to a null-terminated UTF8-encoded string in the
@@ -1117,44 +1109,6 @@ function dbg(...args) {
         return ret;
       },
   };
-  var _fd_close = (fd) => {
-      abort('fd_close called without SYSCALLS_REQUIRE_FILESYSTEM');
-    };
-
-  var convertI32PairToI53Checked = (lo, hi) => {
-      assert(lo == (lo >>> 0) || lo == (lo|0)); // lo should either be a i32 or a u32
-      assert(hi === (hi|0));                    // hi should be a i32
-      return ((hi + 0x200000) >>> 0 < 0x400001 - !!lo) ? (lo >>> 0) + hi * 4294967296 : NaN;
-    };
-  function _fd_seek(fd,offset_low, offset_high,whence,newOffset) {
-    var offset = convertI32PairToI53Checked(offset_low, offset_high);
-  
-    
-      return 70;
-    ;
-  }
-
-  var printCharBuffers = [null,[],[]];
-  
-  var printChar = (stream, curr) => {
-      var buffer = printCharBuffers[stream];
-      assert(buffer);
-      if (curr === 0 || curr === 10) {
-        (stream === 1 ? out : err)(UTF8ArrayToString(buffer, 0));
-        buffer.length = 0;
-      } else {
-        buffer.push(curr);
-      }
-    };
-  
-  var flush_NO_FILESYSTEM = () => {
-      // flush anything remaining in the buffers during shutdown
-      _fflush(0);
-      if (printCharBuffers[1].length) printChar(1, 10);
-      if (printCharBuffers[2].length) printChar(2, 10);
-    };
-  
-  
   var _fd_write = (fd, iov, iovcnt, pnum) => {
       // hack to support printf in SYSCALLS_REQUIRE_FILESYSTEM=0
       var num = 0;
@@ -1171,48 +1125,194 @@ function dbg(...args) {
       return 0;
     };
 
+  var getCFunc = (ident) => {
+      var func = Module['_' + ident]; // closure exported function
+      assert(func, 'Cannot call unknown function ' + ident + ', make sure it is exported');
+      return func;
+    };
   
-  var runtimeKeepaliveCounter = 0;
-  var keepRuntimeAlive = () => noExitRuntime || runtimeKeepaliveCounter > 0;
-  var _proc_exit = (code) => {
-      EXITSTATUS = code;
-      if (!keepRuntimeAlive()) {
-        Module['onExit']?.(code);
-        ABORT = true;
+  var writeArrayToMemory = (array, buffer) => {
+      assert(array.length >= 0, 'writeArrayToMemory array must have a length (should be an array or typed array)')
+      HEAP8.set(array, buffer);
+    };
+  
+  var lengthBytesUTF8 = (str) => {
+      var len = 0;
+      for (var i = 0; i < str.length; ++i) {
+        // Gotcha: charCodeAt returns a 16-bit word that is a UTF-16 encoded code
+        // unit, not a Unicode code point of the character! So decode
+        // UTF16->UTF32->UTF8.
+        // See http://unicode.org/faq/utf_bom.html#utf16-3
+        var c = str.charCodeAt(i); // possibly a lead surrogate
+        if (c <= 0x7F) {
+          len++;
+        } else if (c <= 0x7FF) {
+          len += 2;
+        } else if (c >= 0xD800 && c <= 0xDFFF) {
+          len += 4; ++i;
+        } else {
+          len += 3;
+        }
       }
-      quit_(code, new ExitStatus(code));
+      return len;
+    };
+  
+  var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
+      assert(typeof str === 'string', `stringToUTF8Array expects a string (got ${typeof str})`);
+      // Parameter maxBytesToWrite is not optional. Negative values, 0, null,
+      // undefined and false each don't write out any bytes.
+      if (!(maxBytesToWrite > 0))
+        return 0;
+  
+      var startIdx = outIdx;
+      var endIdx = outIdx + maxBytesToWrite - 1; // -1 for string null terminator.
+      for (var i = 0; i < str.length; ++i) {
+        // Gotcha: charCodeAt returns a 16-bit word that is a UTF-16 encoded code
+        // unit, not a Unicode code point of the character! So decode
+        // UTF16->UTF32->UTF8.
+        // See http://unicode.org/faq/utf_bom.html#utf16-3
+        // For UTF8 byte structure, see http://en.wikipedia.org/wiki/UTF-8#Description
+        // and https://www.ietf.org/rfc/rfc2279.txt
+        // and https://tools.ietf.org/html/rfc3629
+        var u = str.charCodeAt(i); // possibly a lead surrogate
+        if (u >= 0xD800 && u <= 0xDFFF) {
+          var u1 = str.charCodeAt(++i);
+          u = 0x10000 + ((u & 0x3FF) << 10) | (u1 & 0x3FF);
+        }
+        if (u <= 0x7F) {
+          if (outIdx >= endIdx) break;
+          heap[outIdx++] = u;
+        } else if (u <= 0x7FF) {
+          if (outIdx + 1 >= endIdx) break;
+          heap[outIdx++] = 0xC0 | (u >> 6);
+          heap[outIdx++] = 0x80 | (u & 63);
+        } else if (u <= 0xFFFF) {
+          if (outIdx + 2 >= endIdx) break;
+          heap[outIdx++] = 0xE0 | (u >> 12);
+          heap[outIdx++] = 0x80 | ((u >> 6) & 63);
+          heap[outIdx++] = 0x80 | (u & 63);
+        } else {
+          if (outIdx + 3 >= endIdx) break;
+          if (u > 0x10FFFF) warnOnce('Invalid Unicode code point ' + ptrToString(u) + ' encountered when serializing a JS string to a UTF-8 string in wasm memory! (Valid unicode code points should be in range 0-0x10FFFF).');
+          heap[outIdx++] = 0xF0 | (u >> 18);
+          heap[outIdx++] = 0x80 | ((u >> 12) & 63);
+          heap[outIdx++] = 0x80 | ((u >> 6) & 63);
+          heap[outIdx++] = 0x80 | (u & 63);
+        }
+      }
+      // Null-terminate the pointer to the buffer.
+      heap[outIdx] = 0;
+      return outIdx - startIdx;
+    };
+  var stringToUTF8 = (str, outPtr, maxBytesToWrite) => {
+      assert(typeof maxBytesToWrite == 'number', 'stringToUTF8(str, outPtr, maxBytesToWrite) is missing the third parameter that specifies the length of the output buffer!');
+      return stringToUTF8Array(str, HEAPU8, outPtr, maxBytesToWrite);
+    };
+  
+  var stackAlloc = (sz) => __emscripten_stack_alloc(sz);
+  var stringToUTF8OnStack = (str) => {
+      var size = lengthBytesUTF8(str) + 1;
+      var ret = stackAlloc(size);
+      stringToUTF8(str, ret, size);
+      return ret;
+    };
+  
+  
+  
+  
+  
+    /**
+     * @param {string|null=} returnType
+     * @param {Array=} argTypes
+     * @param {Arguments|Array=} args
+     * @param {Object=} opts
+     */
+  var ccall = (ident, returnType, argTypes, args, opts) => {
+      // For fast lookup of conversion functions
+      var toC = {
+        'string': (str) => {
+          var ret = 0;
+          if (str !== null && str !== undefined && str !== 0) { // null string
+            // at most 4 bytes per UTF-8 code point, +1 for the trailing '\0'
+            ret = stringToUTF8OnStack(str);
+          }
+          return ret;
+        },
+        'array': (arr) => {
+          var ret = stackAlloc(arr.length);
+          writeArrayToMemory(arr, ret);
+          return ret;
+        }
+      };
+  
+      function convertReturnValue(ret) {
+        if (returnType === 'string') {
+          
+          return UTF8ToString(ret);
+        }
+        if (returnType === 'boolean') return Boolean(ret);
+        return ret;
+      }
+  
+      var func = getCFunc(ident);
+      var cArgs = [];
+      var stack = 0;
+      assert(returnType !== 'array', 'Return type should not be "array".');
+      if (args) {
+        for (var i = 0; i < args.length; i++) {
+          var converter = toC[argTypes[i]];
+          if (converter) {
+            if (stack === 0) stack = stackSave();
+            cArgs[i] = converter(args[i]);
+          } else {
+            cArgs[i] = args[i];
+          }
+        }
+      }
+      var ret = func(...cArgs);
+      function onDone(ret) {
+        if (stack !== 0) stackRestore(stack);
+        return convertReturnValue(ret);
+      }
+  
+      ret = onDone(ret);
+      return ret;
+    };
+
+  
+  
+    /**
+     * @param {string=} returnType
+     * @param {Array=} argTypes
+     * @param {Object=} opts
+     */
+  var cwrap = (ident, returnType, argTypes, opts) => {
+      return (...args) => ccall(ident, returnType, argTypes, args, opts);
     };
 function checkIncomingModuleAPI() {
   ignoredModuleProp('fetchSettings');
 }
 var wasmImports = {
   /** @export */
-  __call_sighandler: ___call_sighandler,
+  __gmpz_clear: ___gmpz_clear,
   /** @export */
-  _abort_js: __abort_js,
+  __gmpz_get_str: ___gmpz_get_str,
+  /** @export */
+  __gmpz_init: ___gmpz_init,
+  /** @export */
+  __gmpz_mul_ui: ___gmpz_mul_ui,
+  /** @export */
+  __gmpz_set_ui: ___gmpz_set_ui,
   /** @export */
   _emscripten_memcpy_js: __emscripten_memcpy_js,
   /** @export */
-  _emscripten_runtime_keepalive_clear: __emscripten_runtime_keepalive_clear,
-  /** @export */
-  emscripten_resize_heap: _emscripten_resize_heap,
-  /** @export */
-  fd_close: _fd_close,
-  /** @export */
-  fd_seek: _fd_seek,
-  /** @export */
-  fd_write: _fd_write,
-  /** @export */
-  proc_exit: _proc_exit
+  fd_write: _fd_write
 };
 var wasmExports = createWasm();
 var ___wasm_call_ctors = createExportWrapper('__wasm_call_ctors', 0);
-var _fatorial = Module['_fatorial'] = createExportWrapper('fatorial', 2);
-var _my_mpz_init = Module['_my_mpz_init'] = createExportWrapper('my_mpz_init', 1);
-var _my_mpz_get_str = Module['_my_mpz_get_str'] = createExportWrapper('my_mpz_get_str', 3);
-var _my_mpz_clear = Module['_my_mpz_clear'] = createExportWrapper('my_mpz_clear', 1);
-var _my_malloc = Module['_my_malloc'] = createExportWrapper('my_malloc', 1);
-var _my_free = Module['_my_free'] = createExportWrapper('my_free', 1);
+var _factorial = Module['_factorial'] = createExportWrapper('factorial', 1);
+var _print_factorial = Module['_print_factorial'] = createExportWrapper('print_factorial', 1);
+var _calculate_factorial = Module['_calculate_factorial'] = createExportWrapper('calculate_factorial', 1);
 var _fflush = createExportWrapper('fflush', 1);
 var _strerror = createExportWrapper('strerror', 1);
 var _emscripten_stack_init = () => (_emscripten_stack_init = wasmExports['emscripten_stack_init'])();
@@ -1228,6 +1328,8 @@ var dynCall_jiji = Module['dynCall_jiji'] = createExportWrapper('dynCall_jiji', 
 // include: postamble.js
 // === Auto-generated postamble setup entry stuff ===
 
+Module['ccall'] = ccall;
+Module['cwrap'] = cwrap;
 var missingLibrarySymbols = [
   'writeI53ToI64',
   'writeI53ToI64Clamped',
@@ -1237,13 +1339,19 @@ var missingLibrarySymbols = [
   'readI53FromI64',
   'readI53FromU64',
   'convertI32PairToI53',
+  'convertI32PairToI53Checked',
   'convertU32PairToI53',
-  'stackAlloc',
   'getTempRet0',
   'setTempRet0',
   'zeroMemory',
   'exitJS',
+  'getHeapMax',
+  'abortOnCannotGrowMemory',
   'growMemory',
+  'isLeapYear',
+  'ydayFromDate',
+  'arraySum',
+  'addDays',
   'strError',
   'inetPton4',
   'inetNtop4',
@@ -1263,12 +1371,14 @@ var missingLibrarySymbols = [
   'getDynCaller',
   'dynCall',
   'handleException',
+  'keepRuntimeAlive',
   'runtimeKeepalivePush',
   'runtimeKeepalivePop',
   'callUserCallback',
   'maybeExit',
   'asmjsMangle',
   'asyncLoad',
+  'alignMemory',
   'mmapAlloc',
   'HandleAllocator',
   'getNativeTypeSize',
@@ -1276,9 +1386,6 @@ var missingLibrarySymbols = [
   'STACK_ALIGN',
   'POINTER_SIZE',
   'ASSERTIONS',
-  'getCFunc',
-  'ccall',
-  'cwrap',
   'uleb128Encode',
   'sigToWasmTypes',
   'generateFuncType',
@@ -1293,9 +1400,6 @@ var missingLibrarySymbols = [
   'strLen',
   'reSign',
   'formatString',
-  'stringToUTF8Array',
-  'stringToUTF8',
-  'lengthBytesUTF8',
   'intArrayFromString',
   'intArrayToString',
   'AsciiToString',
@@ -1307,8 +1411,6 @@ var missingLibrarySymbols = [
   'stringToUTF32',
   'lengthBytesUTF32',
   'stringToNewUTF8',
-  'stringToUTF8OnStack',
-  'writeArrayToMemory',
   'registerKeyEventCallback',
   'maybeCStringToJsString',
   'findEventTarget',
@@ -1370,10 +1472,6 @@ var missingLibrarySymbols = [
   'findMatchingCatch',
   'Browser_asyncPrepareDataCounter',
   'setMainLoop',
-  'isLeapYear',
-  'ydayFromDate',
-  'arraySum',
-  'addDays',
   'getSocketFromFD',
   'getSocketAddress',
   'FS_createPreloadedFile',
@@ -1390,9 +1488,6 @@ var missingLibrarySymbols = [
   'webgl_enable_OES_vertex_array_object',
   'webgl_enable_WEBGL_draw_buffers',
   'webgl_enable_WEBGL_multi_draw',
-  'webgl_enable_EXT_polygon_offset_clamp',
-  'webgl_enable_EXT_clip_control',
-  'webgl_enable_WEBGL_polygon_mode',
   'emscriptenWebGLGet',
   'computeUnpackAlignedImageSize',
   'colorChannelsInGlTextureFormat',
@@ -1434,13 +1529,15 @@ var unexportedSymbols = [
   'wasmExports',
   'writeStackCookie',
   'checkStackCookie',
-  'convertI32PairToI53Checked',
   'stackSave',
   'stackRestore',
+  'stackAlloc',
   'ptrToString',
-  'getHeapMax',
-  'abortOnCannotGrowMemory',
   'ENV',
+  'MONTH_DAYS_REGULAR',
+  'MONTH_DAYS_LEAP',
+  'MONTH_DAYS_REGULAR_CUMULATIVE',
+  'MONTH_DAYS_LEAP_CUMULATIVE',
   'ERRNO_CODES',
   'DNS',
   'Protocols',
@@ -1449,10 +1546,9 @@ var unexportedSymbols = [
   'warnOnce',
   'readEmAsmArgsArray',
   'jstoi_s',
-  'keepRuntimeAlive',
-  'alignMemory',
   'wasmTable',
   'noExitRuntime',
+  'getCFunc',
   'freeTableIndexes',
   'functionsInTableMap',
   'setValue',
@@ -1462,7 +1558,12 @@ var unexportedSymbols = [
   'UTF8Decoder',
   'UTF8ArrayToString',
   'UTF8ToString',
+  'stringToUTF8Array',
+  'stringToUTF8',
+  'lengthBytesUTF8',
   'UTF16Decoder',
+  'stringToUTF8OnStack',
+  'writeArrayToMemory',
   'JSEvents',
   'specialHTMLTargets',
   'findCanvasEventTarget',
@@ -1478,10 +1579,6 @@ var unexportedSymbols = [
   'Browser',
   'getPreloadedImageData__data',
   'wget',
-  'MONTH_DAYS_REGULAR',
-  'MONTH_DAYS_LEAP',
-  'MONTH_DAYS_REGULAR_CUMULATIVE',
-  'MONTH_DAYS_LEAP_CUMULATIVE',
   'SYSCALLS',
   'preloadPlugins',
   'FS_stdin_getChar_buffer',
@@ -1557,7 +1654,6 @@ function run() {
 
     initRuntime();
 
-    readyPromiseResolve(Module);
     Module['onRuntimeInitialized']?.();
 
     assert(!Module['_main'], 'compiled without a main, but one is present. if you added it from JS, use Module["onRuntimeInitialized"]');
@@ -1567,8 +1663,10 @@ function run() {
 
   if (Module['setStatus']) {
     Module['setStatus']('Running...');
-    setTimeout(() => {
-      setTimeout(() => Module['setStatus'](''), 1);
+    setTimeout(function() {
+      setTimeout(function() {
+        Module['setStatus']('');
+      }, 1);
       doRun();
     }, 1);
   } else
@@ -1618,39 +1716,3 @@ run();
 
 // end include: postamble.js
 
-// include: postamble_modularize.js
-// In MODULARIZE mode we wrap the generated code in a factory function
-// and return either the Module itself, or a promise of the module.
-//
-// We assign to the `moduleRtn` global here and configure closure to see
-// this as and extern so it won't get minified.
-
-moduleRtn = readyPromise;
-
-// Assertion for attempting to access module properties on the incoming
-// moduleArg.  In the past we used this object as the prototype of the module
-// and assigned properties to it, but now we return a distinct object.  This
-// keeps the instance private until it is ready (i.e the promise has been
-// resolved).
-for (const prop of Object.keys(Module)) {
-  if (!(prop in moduleArg)) {
-    Object.defineProperty(moduleArg, prop, {
-      configurable: true,
-      get() {
-        abort(`Access to module property ('${prop}') is no longer possible via the module constructor argument; Instead, use the result of the module constructor.`)
-      }
-    });
-  }
-}
-// end include: postamble_modularize.js
-
-
-
-  return moduleRtn;
-}
-);
-})();
-if (typeof exports === 'object' && typeof module === 'object')
-  module.exports = Module;
-else if (typeof define === 'function' && define['amd'])
-  define([], () => Module);

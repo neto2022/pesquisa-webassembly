@@ -4,43 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- <link rel="preload" as="fetch" href="fatorial.wasm" crossorigin /> -->
-    <script src="https://cdn.jsdelivr.net/npm/gmp-wasm"></script>
+    <script rel="preload" type="module" src="fatorial.js"></script>
     <title>Cálculo de Fatorial</title>
   </head>
   <body>
     <h1>Cálculo de Fatorial</h1>
     <div id="wasm">
-      <p id="pwasm">
-        <script type="module" src="fatorial.js"></script>
-        <input type="number" id="inputNumber" placeholder="Digite um número">
-        <button onclick="calculateFactorial()">Calcular Fatorial</button>
-        <p id="result"></p>
-    
-        <script>
-            var Module = {
-            onRuntimeInitialized: () => {
-                console.log("WebAssembly module loaded");
-            }
-        };
-
-        function calculateFactorial() {
-            var n = parseInt(document.getElementById('inputNumber').value);
-           var result //= Module._my_malloc(4); // Aloca espaço para o resultado
-
-            Module._my_mpz_init(result);
-            Module._fatorial(result, n);
-
-            var strPtr //= Module._my_malloc(20); // Aloca espaço para a string do resultado
-            Module._my_mpz_get_str(strPtr, 10, result);
-
-            var resultStr = Module.UTF8ToString(strPtr);
-            document.getElementById('result').innerText = "Fatorial: " + resultStr;
-
-            Module._my_mpz_clear(result);
-            Module._my_free(result);
-            Module._my_free(strPtr);
-        }
-        </script></p>
+      <p id="pwasm"></p>
     </div>
     <div id="js">
       <p id="pjs"></p>
@@ -49,8 +19,8 @@
       <p id="pwasmjs"></p>
     </div>
     <p id="tes"></p>
-    <!-- <script type="module" src="wasm.js"></script> -->
-    <script type="module" src="fat.js"></script>
+    <script type="module" src="wasm.js"></script>
+    <!-- <script type="module" src="fat.js"></script> -->
     <!-- <script type="module" src="fatwasm.js"></script> -->
   </body>
 </html>

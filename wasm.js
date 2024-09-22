@@ -52,7 +52,7 @@ const importObject = {
 
  WebAssembly.instantiateStreaming(fetch('./fatorial.wasm'), importObject).then(
    (result) => {
-     console.log(`result.instance.exports`, result.instance.exports.fatorial(1,10));
+     console.log(`result.instance.exports`, result.instance.exports.main());
    },
 );
 
