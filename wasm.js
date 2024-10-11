@@ -1,13 +1,16 @@
-const inicio = performance.now();
-const memoriaAntes = performance.memory.usedJSHeapSize;
+import fs from 'fs';
+import { performance } from 'perf_hooks';
 
-const memory = new WebAssembly.Memory({ initial: 256 });
+const inicio = performance.now();
+const memoriaAntes = process.memoryUsage().heapUsed;
+
+const memory = new WebAssembly.Memory({ initial: 512 });
 
 const importObject = {
   wasi_snapshot_preview1: {
     fd_write: (fd, iov, iovcnt) => {
       const text = new TextDecoder().decode(
-        new Uint8Array(memory.buffer, iov, iovcnt),
+        new Uint8Array(memory.buffer, iov, iovcnt)
       );
       console.log(text);
       return 0; // Return 0 for success
@@ -21,16 +24,16 @@ const importObject = {
     },
     fd_seek: (fd, offset, whence) => {
       console.log(
-        `Seeking in file descriptor ${fd} with offset ${offset} and whence ${whence}`,
+        `Seeking in file descriptor ${fd} with offset ${offset} and whence ${whence}`
       );
       return 0; // Return 0 for success
     },
   },
   env: {
     memory,
-    table: new WebAssembly.Table({ initial: 0, element: 'anyfunc' }),
+    table: new WebAssembly.Table({ initial: 0, element: "anyfunc" }),
     _abort_js: () => {
-      console.error('Abort called from WebAssembly');
+      console.error("Abort called from WebAssembly");
     },
     _emscripten_memcpy_js: (dest, src, num) => {
       const mem = new Uint8Array(memory.buffer);
@@ -38,7 +41,7 @@ const importObject = {
       return dest;
     },
     _emscripten_runtime_keepalive_clear: () => {
-      console.log('Keepalive clear called');
+      console.log("Keepalive clear called");
     },
     __call_sighandler: (signum) => {
       console.log(`Signal handler called with signal number: ${signum}`);
@@ -50,51 +53,18 @@ const importObject = {
   },
 };
 
- WebAssembly.instantiateStreaming(fetch('./fatorial.wasm'), importObject).then(
-   (result) => {
-     console.log(`result.instance.exports`, result.instance.exports.main());
-   },
-);
+// Read the WASM file as a Buffer
+const wasmBuffer = fs.readFileSync("./bench.wasm");
+
+WebAssembly.instantiate(wasmBuffer, importObject)
+  .then((result) => {
+    console.log(`result.instance.exports`, result.instance.exports.fatorial(10));
+  })
+  .catch(console.error);
 
 const fim = performance.now();
-const memoriaDepois = performance.memory.usedJSHeapSize;
+const memoriaDepois = process.memoryUsage().heapUsed;
 const tempoDeExecucaoWasm = fim - inicio;
-console.log(fim, inicio, memoriaAntes, memoriaDepois);
 
-const resultado = document.getElementById('wasm');
-resultado.innerHTML = `Tempo de execução: ${tempoDeExecucaoWasm} MS WASM <br>
-      Uso de memória: ${(memoriaDepois - memoriaAntes) / 1048576} MB WASM`;
-
-// fetch('fatorial.wasm')
-//   .then((response) => response.arrayBuffer())
-//   .then((bytes) => WebAssembly.instantiate(bytes, importObject))
-//   .then((result) => {
-//     const { instance } = result;
-
-//     const memoriaAntes = performance.memory.usedJSHeapSize;
-//     const inicio = performance.now();
-
-//     const n = 100000;
-//     const resultadoPtr = instance.exports._malloc(mpz_size(null) * 4);
-//     const resultadoGmp = new Uint8Array(memory.buffer, resultadoPtr, mpz_size(null) * 4);
-//     const resultadoMpz = new Pointer(resultadoGmp);
-
-//     instance.exports.fatorial(resultadoMpz, n);
-
-//     const resultadoStr = instance.exports._mpz_get_str(null, 10, resultadoMpz);
-//     console.log(`O fatorial de ${n} é ${resultadoStr}`);
-
-//     instance.exports._free(resultadoPtr);
-
-//     const fim = performance.now();
-//     const tempoDeExecucaoWasm = fim - inicio;
-
-//     const memoriaDepois = performance.memory.usedJSHeapSize;
-
-//     const resultado = document.getElementById('wasm');
-//     resultado.innerHTML = `Tempo de execução: ${tempoDeExecucaoWasm} MS WASM <br>
-//       Uso de memória: ${((memoriaDepois - memoriaAntes) / 1048576)} MB WASM`;
-//   })
-//   .catch((error) => {
-//     console.error('Error instantiating WebAssembly module:', error);
-//   });
+console.log(tempoDeExecucaoWasm);
+console.log((memoriaDepois - memoriaAntes) / 1048576);
