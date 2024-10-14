@@ -1,23 +1,26 @@
 #include <stdio.h>
 #include <gmp.h>
+#include <stdlib.h>
 
-void fatorial(int n, mpz_t result) {
-    mpz_init_set_ui(result, 1); // Initialize result to 1
-    for (int i = 2; i <= n; ++i) {
+void fatorial(mpz_t result, unsigned int n) {
+    mpz_set_ui(result, 1); // Initialize result as 1
+    for (unsigned int i = 1; i <= n; i++) {
         mpz_mul_ui(result, result, i); // result *= i
     }
 }
 
 int main() {
-    int n = 1000000;
     mpz_t result;
-    fatorial(n, result);
+    mpz_init(result);
+    fatorial(result, 5);
     
-    // Print the result
-    gmp_printf("Factorial of %d is: %Zd\n", n, result);
+    // Convert result to string for printing
+    char *result_str = mpz_get_str(NULL, 10, result);
+    printf("Fatorial de 5: %s\n", result_str);
     
-    // Clear memory
+    // Free the string allocated by mpz_get_str
+    free(result_str);
+    
     mpz_clear(result);
-    
     return 0;
 }
