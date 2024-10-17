@@ -7,8 +7,9 @@ const inicio = performance.now();
 const memoriaAntes = process.memoryUsage().heapUsed;
 
 // Criação de memória para o WebAssembly
-const memory = new WebAssembly.Memory({ initial: 256 });
-
+const memory = new WebAssembly.Memory({ initial: 0, maximum: 256 });
+// 0 páginas = 0 MB
+// 256 páginas = 16 MB
 const importObject = {
   wasi_snapshot_preview1: {
     fd_write: (fd, iov, iovcnt) => {
@@ -72,7 +73,7 @@ fs.readFile("./bench2x2.wasm", (err, data) => {
       // Medição de memória após execução
       const memoriaDepois = process.memoryUsage().heapUsed;
       const tempoDeExecucaoWasm = fim - inicio;
-
+      console.log(`\nBENCHMARK WASM Matriz 2x2`);
       console.log(`Tempo de execução wasm: ${tempoDeExecucaoWasm}ms`);
       console.log(
         `Memória usada antes wasm: ${(memoriaAntes / 1048576).toFixed(2)} MB`

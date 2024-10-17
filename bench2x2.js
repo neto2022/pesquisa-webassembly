@@ -26,9 +26,9 @@ function matrizMultiplicacao(a, b) {
 
 function main() {
   // Inicializa o gerador de números aleatórios com a hora atual (JavaScript faz isso automaticamente)
-  let limite = 5;
+  let limite = 8;
 
-  // Função para gerar um número aleatório de 0 até 5
+  // Função para gerar um número aleatório de 0 até 8
   function randomInt(max) {
     return Math.floor(Math.random() * max);
   }
@@ -61,9 +61,14 @@ main();
 const fim = performance.now();
 const memoriaDepois = process.memoryUsage().heapUsed;
 const tempoDeExecucaoWasm = fim - inicio;
+console.log(`\nBENCHMARK JS Matriz 2x2`);
 console.log(`Tempo de execução JS: ${tempoDeExecucaoWasm}ms`);
-console.log(`Memória usada antes JS: ${(memoriaAntes / 1048576).toFixed(2)} MB`);
-console.log(`Memória usada depois JS: ${(memoriaDepois / 1048576).toFixed(2)} MB`);
+console.log(
+  `Memória usada antes JS: ${(memoriaAntes / 1048576).toFixed(2)} MB`
+);
+console.log(
+  `Memória usada depois JS: ${(memoriaDepois / 1048576).toFixed(2)} MB`
+);
 console.log(
   `Diferença no uso de memória JS: ${(
     (memoriaDepois - memoriaAntes) /
