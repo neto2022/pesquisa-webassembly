@@ -4,11 +4,11 @@ import psutil
 
 arr = [
     "wasm10x10.js",
-    "bench10x10.js",
+    "JS10x10.js",
     "wasm5x5.js",
-    "bench5x5.js",
+    "JS5x5.js",
     "wasm2x2.js",
-    "bench2x2.js",
+    "JS2x2.js",
 ]
 resultados = []
 

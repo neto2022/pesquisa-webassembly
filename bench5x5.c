@@ -27,12 +27,6 @@ void matriz_multiplicacao(int a[5][5], int b[5][5], int result[5][5])
 // EMSCRIPTEN_KEEPALIVE
 int main()
 {
-    // Inicializa a semente do gerador de números aleatórios com a hora atual
-    srand(time(0));
-
-    // Limita o número aleatório de 0 a 5
-    int limite = 6;
-
     // Exemplo de multiplicação de matrizes 5x5
     int a[5][5];
     int b[5][5];
@@ -43,8 +37,8 @@ int main()
     {
         for (int j = 0; j < 5; j++)
         {
-            a[i][j] = fatorial(rand() % limite);
-            b[i][j] = fatorial(rand() % limite);
+            a[i][j] = fatorial(rand() % 15);
+            b[i][j] = fatorial(rand() % 15);
         }
     }
 
@@ -57,7 +51,7 @@ int main()
     {
         for (int j = 0; j < 5; j++)
         {
-            printf("result[%d][%d] = %llu\n", i, j, (unsigned long long)result[i][j]);
+            printf("result[%d][%d] = %llu \n", i, j, (unsigned long long)result[i][j]);
         }
     }*/
 
