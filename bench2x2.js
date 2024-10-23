@@ -55,23 +55,4 @@ function main() {
     }
   }*/
 }
-const inicio = performance.now();
-const memoriaAntes = process.memoryUsage().heapUsed;
 main();
-const fim = performance.now();
-const memoriaDepois = process.memoryUsage().heapUsed;
-const tempoDeExecucaoWasm = fim - inicio;
-console.log(`\nBENCHMARK JS Matriz 2x2`);
-console.log(`Tempo de execução JS: ${tempoDeExecucaoWasm}ms`);
-console.log(
-  `Memória usada antes JS: ${(memoriaAntes / 1048576).toFixed(2)} MB`
-);
-console.log(
-  `Memória usada depois JS: ${(memoriaDepois / 1048576).toFixed(2)} MB`
-);
-console.log(
-  `Diferença no uso de memória JS: ${(
-    (memoriaDepois - memoriaAntes) /
-    1048576
-  ).toFixed(2)} MB`
-);

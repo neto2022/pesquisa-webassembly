@@ -1,10 +1,4 @@
 import fs from "fs";
-import { performance } from "perf_hooks"; // Correção na importação do perf_hooks
-
-const inicio = performance.now();
-
-// Medição de memória no Node.js
-const memoriaAntes = process.memoryUsage().heapUsed;
 
 // Criação de memória para o WebAssembly
 const memory = new WebAssembly.Memory({ initial: 0, maximum: 256 });
@@ -62,7 +56,7 @@ const importObject = {
 };
 
 // Lendo o arquivo .wasm usando fs.readFile
-fs.readFile("./bench2x2.wasm", (err, data) => {
+fs.readFile("./bench10x10.wasm", (err, data) => {
   // Carrega e instancia o módulo WebAssembly
   WebAssembly.instantiate(data, importObject).then((result) => {
     result.instance.exports.main();

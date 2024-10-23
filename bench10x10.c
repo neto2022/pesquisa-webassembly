@@ -10,14 +10,14 @@ unsigned long long fatorial(int n)
     return n * fatorial(n - 1);
 }
 // EMSCRIPTEN_KEEPALIVE
-void matriz_multiplicacao(int a[5][5], int b[5][5], int result[5][5])
+void matriz_multiplicacao(int a[10][10], int b[10][10], int result[10][10])
 {
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < 10; i++)
     {
-        for (int j = 0; j < 5; j++)
+        for (int j = 0; j < 10; j++)
         {
             result[i][j] = 0;
-            for (int k = 0; k < 5; k++)
+            for (int k = 0; k < 10; k++)
             {
                 result[i][j] += a[i][k] * b[k][j];
             }
@@ -33,15 +33,15 @@ int main()
     // Limita o número aleatório de 0 a 5
     int limite = 6;
 
-    // Exemplo de multiplicação de matrizes 5x5
-    int a[5][5];
-    int b[5][5];
-    int result[5][5];
+    // Exemplo de multiplicação de matrizes 10x10
+    int a[10][10];
+    int b[10][10];
+    int result[10][10];
 
     // Gera números aleatórios para as matrizes
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < 10; i++)
     {
-        for (int j = 0; j < 5; j++)
+        for (int j = 0; j < 10; j++)
         {
             a[i][j] = fatorial(rand() % limite);
             b[i][j] = fatorial(rand() % limite);
@@ -53,11 +53,12 @@ int main()
 
     // Imprime o resultado da multiplicação de matrizes
     /*printf("Resultado da multiplicação das matrizes:\n");
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < 10; i++)
     {
-        for (int j = 0; j < 5; j++)
+        for (int j = 0; j < 10; j++)
         {
-            printf("result[%d][%d] = %llu\n", i, j, (unsigned long long)result[i][j]);
+            printf("result[%d][%d] = %llu ", i, j, (unsigned long long)result[i][j]);
+            if (j == 9) printf("\n");
         }
     }*/
 

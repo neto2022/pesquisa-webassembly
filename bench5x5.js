@@ -24,7 +24,7 @@ function main() {
 
   // Matrizes 5x5
   let a = Array(5)
-    .fill(0)
+.fill(0)
     .map(() => Array(5).fill(0));
   let b = Array(5)
     .fill(0)
@@ -45,31 +45,11 @@ function main() {
   matrizMultiplicacao(a, b, result);
 
   // Imprime o resultado da multiplicação de matrizes
-  console.log("Resultado da multiplicação das matrizes:");
-  /*for (let i = 0; i < 5; i++) {
+ /* console.log("Resultado da multiplicação das matrizes:");
+  for (let i = 0; i < 5; i++) {
             for (let j = 0; j < 5; j++) {
                 console.log(`result[${i}][${j}] = ${result[i][j]}`);
             }
         }*/
 }
-const inicio = performance.now();
-const memoriaAntes = process.memoryUsage().heapUsed;
 main();
-const fim = performance.now();
-const memoriaDepois = process.memoryUsage().heapUsed;
-const tempoDeExecucaoWasm = fim - inicio;
-// 1048576 converter um valor em bytes para megabytes
-console.log(`\nBENCHMARK JS Matriz 5x5`);
-console.log(`Tempo de execução JS: ${tempoDeExecucaoWasm}ms`);
-console.log(
-  `Memória usada antes JS: ${(memoriaAntes / 1048576).toFixed(2)} MB`
-);
-console.log(
-  `Memória usada depois JS: ${(memoriaDepois / 1048576).toFixed(2)} MB`
-);
-console.log(
-  `Diferença no uso de memória JS: ${(
-    (memoriaDepois - memoriaAntes) /
-    1048576
-  ).toFixed(2)} MB`
-);
