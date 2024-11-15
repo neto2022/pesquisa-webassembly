@@ -20,7 +20,7 @@ def executar_script(item):
     tempos = []
     memorias = []
 
-    for _ in range(5):  # Executa 5 vezes
+    for _ in range(10):  # Executa 5 vezes
         process = subprocess.Popen(["node", item])
         pid = process.pid
         inicio = time.perf_counter()
