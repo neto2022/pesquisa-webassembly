@@ -3,12 +3,8 @@ import subprocess
 import psutil
 
 arr = [
-    "wasm10x10.js",
-    "JS10x10.js",
-    "wasm5x5.js",
-    "JS5x5.js",
-    "wasm2x2.js",
-    "JS2x2.js",
+    
+    "bb.cjs"
 ]
 
 resultados_media = []
@@ -21,7 +17,7 @@ def executar_script(item):
     memorias = []
 
     for _ in range(10):  # Executa 5 vezes
-        process = subprocess.Popen(["node", item])
+        process = subprocess.Popen(["node", "-v"])
         pid = process.pid
         inicio = time.perf_counter()
 

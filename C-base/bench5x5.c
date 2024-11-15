@@ -45,15 +45,5 @@ int main()
     // Realiza a multiplicação das matrizes
     matriz_multiplicacao(a, b, result);
 
-    // Imprime o resultado da multiplicação de matrizes
-    /*printf("Resultado da multiplicação das matrizes:\n");
-    for (int i = 0; i < 5; i++)
-    {
-        for (int j = 0; j < 5; j++)
-        {
-            printf("result[%d][%d] = %llu \n", i, j, (unsigned long long)result[i][j]);
-        }
-    }*/
-
     return 0;
 }

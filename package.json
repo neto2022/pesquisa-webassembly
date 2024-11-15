@@ -2,6 +2,7 @@
     "type": "module",
     "dependencies": {
         "fs": "^0.0.1-security",
-        "process": "^0.11.10"
+        "process": "^0.11.10",
+        "wabt": "^1.0.36"
     }
 }

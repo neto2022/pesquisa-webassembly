@@ -30,8 +30,8 @@ function main() {
     bubbleSort(numbers);
 
     // Exibindo os números ordenados
-    console.log("Números ordenados:");
-    console.log(numbers.join(" "));
+    //console.log("Números ordenados:");
+    //console.log(numbers.join(" "));
 }
 
 main();

@@ -1,0 +1,33 @@
+2x2
+    // Imprime o resultado da multiplicação de matrizes
+    printf("Resultado da multiplicação das matrizes:\n");
+    for (int i = 0; i < 2; i++)
+    {
+        for (int j = 0; j < 2; j++)
+        {
+            printf("result[%d][%d] = %llu \n", i, j, (unsigned long long)result[i][j]);
+        }
+    }
+
+5x5
+    // Imprime o resultado da multiplicação de matrizes
+    /*printf("Resultado da multiplicação das matrizes:\n");
+    for (int i = 0; i < 5; i++)
+    {
+        for (int j = 0; j < 5; j++)
+        {
+            printf("result[%d][%d] = %llu \n", i, j, (unsigned long long)result[i][j]);
+        }
+    }*/
+
+    10x10
+    
+    // Imprime o resultado da multiplicação de matrizes
+    /*printf("Resultado da multiplicação das matrizes:\n");
+    for (int i = 0; i < 10; i++)
+    {
+        for (int j = 0; j < 10; j++)
+        {
+            printf("result[%d][%d] = %llu \n", i, j, (unsigned long long)result[i][j]);
+        }
+    }*/
