@@ -13,7 +13,7 @@ int main() {
     srand(time(NULL));
 
     long fileSize = 0;
-    const long targetSize = (1024*10) * 1024; // em kilobytes
+    const long targetSize = (1024*100) * 1024; // em kilobytes
 
     while (fileSize < targetSize) {
         // Gera um número aleatório
