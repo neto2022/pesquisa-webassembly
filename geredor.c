@@ -13,11 +13,11 @@ int main() {
     srand(time(NULL));
 
     long fileSize = 0;
-    const long targetSize = 1024 * 1024; // 100 KB em bytes
+    const long targetSize = (1024*10) * 1024; // em kilobytes
 
     while (fileSize < targetSize) {
-        // Gera um número aleatório entre 0 e 9999
-        int number = rand() % 10000;
+        // Gera um número aleatório
+        unsigned long long number = rand() % 9000000000000000;
 
         // Escreve o número no arquivo com um espaço
         int bytesWritten = fprintf(file, "%d ", number);
