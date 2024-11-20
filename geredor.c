@@ -3,7 +3,7 @@
 #include <time.h>
 
 int main() {
-    FILE *file = fopen("numeros.txt", "w");
+    FILE *file = fopen("numeros1000MB.txt", "w");
     if (file == NULL) {
         printf("Erro ao criar o arquivo!\n");
         return 1;
