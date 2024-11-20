@@ -4,7 +4,7 @@ import psutil
 
 arr = [
     
-    "bb.cjs"
+    "b.exe"
 ]
 
 resultados_media = []
@@ -16,8 +16,8 @@ def executar_script(item):
     tempos = []
     memorias = []
 
-    for _ in range(10):  # Executa 5 vezes
-        process = subprocess.Popen(["node", "-v"])
+    for _ in range(1):  # Executa 5 vezes
+        process = subprocess.Popen([item])
         pid = process.pid
         inicio = time.perf_counter()
 
