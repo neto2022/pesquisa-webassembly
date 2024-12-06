@@ -16,7 +16,7 @@ fs.readFile("./bb.wasm", (err, data) => {
 
   WebAssembly.instantiate(data, imports)
     .then((result) => {
-      console.log(result.instance.exports.bubbleSort);
+      console.log(result.instance.exports);
     })
     .catch((error) => {
       console.error("Error instantiating WASM module:", error);
